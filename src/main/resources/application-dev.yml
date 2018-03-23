@@ -44,3 +44,6 @@ feign:
     enabled: true
 url:
   smsApi: http://localhost:8080/sms
+proxy:
+  httpProxyIpAndPort: localhost:1080
+  sslProxyIpAndPort: localhost:1080

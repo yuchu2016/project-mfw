@@ -44,3 +44,6 @@ feign:
     enabled: true
 url:
   smsApi: #短信接口API地址
+proxy:
+  httpProxyIpAndPort: localhost:1080
+  sslProxyIpAndPort: localhost:1080

@@ -19,9 +19,12 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -50,6 +53,10 @@ public class OrderService {
     private OrderSender orderSender;
     @Autowired
     private SmsClient smsClient;
+    @Value("${proxy.httpProxyIpAndPort}")
+    private String httpProxyIpAndPort;
+    @Value("${proxy.sslProxyIpAndPort}")
+    private String sslProxyIpAndPort;
 
     public Order saveOrder(Order order) {
         CodeInfo departCityInfo = codeInfoRepository.findFirstByCityNameLike(order.getDepartCity());
@@ -248,7 +255,7 @@ public class OrderService {
         log.info("即将提交订单...");
         WebElement submitOrder = webDriver.findElement(By.xpath("//*[@id=\"container\"]/div[8]/div[1]/a"));
         Thread.sleep(2000);
-        //submitOrder.click();
+        submitOrder.click();
         //提交订单结束
         Thread.sleep(4000);
         log.info("提交订单完成,窗口即将关闭...");
@@ -262,7 +269,13 @@ public class OrderService {
     }
 
     private WebDriver init() {
-        System.getProperties().setProperty("webdriver.chrome.driver", "D:/temp/chrome/chromedriver.exe");
+
+        try {
+            String driverLocation = ResourceUtils.getFile("classpath:chromedriver.exe").getAbsolutePath();
+            System.getProperties().setProperty("webdriver.chrome.driver", driverLocation);
+        } catch (FileNotFoundException e) {
+            log.error("找不到驱动!");
+        }
         ChromeOptions options = new ChromeOptions();
         //设置user agent为Android
         options.addArguments("--user-agent=Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/64.0.3282.186 Mobile Safari/537.36");
@@ -271,8 +284,8 @@ public class OrderService {
         //设置代理
 //        String sslProxyIpAndPort = "184.29.47.90:3128";
 //        String httpProxyIpAndPort = "119.28.152.208:80";
-        String sslProxyIpAndPort = "localhost:1080";
-        String httpProxyIpAndPort = "localhost:1080";
+//        String sslProxyIpAndPort = "localhost:1080";
+//        String httpProxyIpAndPort = "localhost:1080";
         DesiredCapabilities cap = new DesiredCapabilities();
         Proxy proxy = new Proxy();
         proxy
