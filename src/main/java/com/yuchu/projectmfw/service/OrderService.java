@@ -1,8 +1,12 @@
 package com.yuchu.projectmfw.service;
 
+import com.yuchu.projectmfw.common.SmsResult;
 import com.yuchu.projectmfw.domain.CodeInfo;
 import com.yuchu.projectmfw.domain.Order;
 import com.yuchu.projectmfw.domain.Passenger;
+import com.yuchu.projectmfw.domain.sms.SmsRequest;
+import com.yuchu.projectmfw.domain.sms.SmsResponse;
+import com.yuchu.projectmfw.feign.SmsClient;
 import com.yuchu.projectmfw.mq.sender.OrderSender;
 import com.yuchu.projectmfw.repository.CodeInfoRepository;
 import com.yuchu.projectmfw.repository.OrderRepository;
@@ -16,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +48,8 @@ public class OrderService {
     private CodeInfoRepository codeInfoRepository;
     @Autowired
     private OrderSender orderSender;
+    @Autowired
+    private SmsClient smsClient;
 
     public Order saveOrder(Order order) {
         CodeInfo departCityInfo = codeInfoRepository.findFirstByCityNameLike(order.getDepartCity());
@@ -220,9 +227,17 @@ public class OrderService {
         try {
             WebElement checkButton = webDriver.findElement(By.xpath("//*[@id=\"contacts_view\"]/ul/li[3]/div"));
 //            checkButton.click();
-            log.warn("请输入验证码：");
+            log.warn("需要输入验证码...");
+            SmsRequest smsRequest= new SmsRequest.SmsRequestBuilder().
+                    ownNumber(order.getContactPhone())
+                    .sendNumber("1069115392306518")
+                    .build();
+            SmsResult<SmsResponse> smsResult= smsClient.getCode(smsRequest);
+            log.info(smsResult.toString());
+            String code = smsResult.getData().getCONTENT();
+            log.info("接收到验证码为:{}",code);
             WebElement checkInput = webDriver.findElement(By.xpath("//*[@id=\"contacts_view\"]/ul/li[3]/input"));
-            //checkInput.sendKeys(验证码);
+            checkInput.sendKeys(code);
         } catch (Exception e) {
             log.info("下单无验证码");
         }
@@ -244,7 +259,6 @@ public class OrderService {
         WebElement paySubmit = webDriver.findElement(By.xpath("//*[@id=\"_j_pay_submit\"]"));
         paySubmit.click();*/
         //结束支付
-        Thread.sleep(100000);
     }
 
     private WebDriver init() {
