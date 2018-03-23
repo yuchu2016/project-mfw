@@ -227,7 +227,7 @@ public class OrderService {
         try {
             WebElement checkButton = webDriver.findElement(By.xpath("//*[@id=\"contacts_view\"]/ul/li[3]/div"));
 //            checkButton.click();
-            log.warn("需要输入验证码...");
+            log.warn("需要手机验证码...");
             SmsRequest smsRequest= new SmsRequest.SmsRequestBuilder().
                     ownNumber(order.getContactPhone())
                     .sendNumber("1069115392306518")
